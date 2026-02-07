@@ -40,10 +40,7 @@ The script generates a JSON file with the following information for each user wh
   {
     "id": "123456789",
     "username": "example_user",
-    "full_name": "Full Name",
-    "profile_pic_url": "https://...",
-    "is_verified": false,
-    "follows_viewer": false
+    "full_name": "Full Name"
   }
 ]
 ```

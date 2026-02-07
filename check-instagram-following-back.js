@@ -92,7 +92,11 @@
 
       followData.edges.forEach((edge) => {
         if (!edge.node.follows_viewer) {
-          unfollowersList.push(edge.node)
+          unfollowersList.push({
+            id: edge.node.id,
+            username: edge.node.username,
+            full_name: edge.node.full_name
+          })
         }
       })
 
