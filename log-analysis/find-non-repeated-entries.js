@@ -2,6 +2,8 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import translations from '../translations/index.js'
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
@@ -10,10 +12,21 @@ const LOGS_DIR = join(BASE_DIR, 'logs')
 const OUTPUT_DIR = join(__dirname, 'output')
 const OUTPUT_FILE = join(OUTPUT_DIR, 'non-repeated-entries.json')
 const JSON_INDENT = 2
+const DEFAULT_LOCALE = 'en'
 
 const readJsonFile = ({ filePath }) => {
   const content = readFileSync(filePath, 'utf8')
   return JSON.parse(content)
+}
+
+const formatMessage = ({ params, template }) => {
+  return Object.entries(params).reduce((output, [key, value]) => {
+    return output.replaceAll(`{${key}}`, `${value}`)
+  }, template)
+}
+
+const getLocaleMessages = ({ locale = DEFAULT_LOCALE }) => {
+  return (translations[locale] ?? translations[DEFAULT_LOCALE]).logAnalysis
 }
 
 const createEntryKey = ({ id, username }) => {
@@ -77,14 +90,16 @@ const createUsersAddedInLatest = ({ fileNames, logs }) => {
 const runAnalysis = ({
   collectLogsFn = collectLogs,
   consoleRef = console,
+  locale = DEFAULT_LOCALE,
   mkdirSyncFn = mkdirSync,
   writeFileSyncFn = writeFileSync
 }) => {
+  const { fileGenerated, noLogsFound, usersAddedInLatest } = getLocaleMessages({
+    locale
+  })
   const { fileNames, logs } = collectLogsFn({ logsDir: LOGS_DIR })
   if (!fileNames.length) {
-    consoleRef.log(
-      'No se encontraron logs para analizar. No se genero archivo.'
-    )
+    consoleRef.log(noLogsFound)
     return { latestFileName: null, users: [], wroteFile: false }
   }
   const { latestFileName, users } = createUsersAddedInLatest({
@@ -93,8 +108,18 @@ const runAnalysis = ({
   })
   mkdirSyncFn(OUTPUT_DIR, { recursive: true })
   writeFileSyncFn(OUTPUT_FILE, JSON.stringify(users, null, JSON_INDENT))
-  consoleRef.log(`Archivo generado: ${OUTPUT_FILE}`)
-  consoleRef.log(`Usuarios agregados en ${latestFileName}: ${users.length}`)
+  consoleRef.log(
+    formatMessage({
+      params: { outputFile: OUTPUT_FILE },
+      template: fileGenerated
+    })
+  )
+  consoleRef.log(
+    formatMessage({
+      params: { latestFileName, usersCount: users.length },
+      template: usersAddedInLatest
+    })
+  )
   return { latestFileName, users, wroteFile: true }
 }
 

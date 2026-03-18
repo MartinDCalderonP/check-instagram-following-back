@@ -7,6 +7,26 @@
   const SCROLL_CYCLES_BEFORE_BREAK = 6
   const SLEEP_TIME_TO_PREVENT_BLOCK = 10000
   const DATE_PART_LENGTH = 2
+  const DEFAULT_LOCALE = 'en'
+  const BANNER_LINE = '═══════════════════════════════════════'
+
+  const formatMessage = ({ params, template }) => {
+    return Object.entries(params).reduce((output, [key, value]) => {
+      return output.replaceAll(`{${key}}`, `${value}`)
+    }, template)
+  }
+
+  let translations
+  if (typeof module !== 'undefined' && module.exports) {
+    translations = require('./translations')
+  } else {
+    translations = globalThis.translations
+  }
+
+  const getLocaleMessages = ({ locale = DEFAULT_LOCALE }) => {
+    return (translations[locale] ?? translations[DEFAULT_LOCALE])
+      .followingChecker
+  }
 
   const createUsersFilename = ({ date }) => {
     const day = `${date.getDate()}`.padStart(DATE_PART_LENGTH, '0')
@@ -70,6 +90,7 @@
     dateRef,
     downloadJsonFile,
     fetchFn,
+    localeRef,
     randomFn,
     setTimeoutFn
   }) => {
@@ -83,6 +104,16 @@
       cookieString: activeCookieString
     })
     const usersFilename = createUsersFilename({ date: activeDateRef })
+    const {
+      completionTitle,
+      completionUsersCount,
+      downloadedFile,
+      longPause,
+      progress,
+      progressListTitle,
+      start,
+      warningFetchError
+    } = getLocaleMessages({ locale: localeRef })
 
     let currentUrl = buildGraphQLUrl({ after: null, userId })
     let hasNextPage = true
@@ -99,26 +130,39 @@
       const percentage = Math.floor((current / total) * 100)
 
       activeConsole.clear()
-      activeConsole.log(`📊 Progreso: ${current}/${total} (${percentage}%)`)
-      activeConsole.log('👤 Usuarios que no te siguen de vuelta:')
+      activeConsole.log(
+        formatMessage({
+          params: { current, percentage, total },
+          template: progress
+        })
+      )
+      activeConsole.log(progressListTitle)
       unfollowers.forEach(({ username }) => {
         activeConsole.log(`   • ${username}`)
       })
     }
 
     const logCompletion = ({ totalUnfollowers }) => {
-      activeConsole.log('═══════════════════════════════════════')
-      activeConsole.log('✅ ¡TODO LISTO!')
-      activeConsole.log('═══════════════════════════════════════')
-      activeConsole.log(`   📁 Archivo descargado: ${usersFilename}`)
+      activeConsole.log(BANNER_LINE)
+      activeConsole.log(completionTitle)
+      activeConsole.log(BANNER_LINE)
       activeConsole.log(
-        `   👥 Total de usuarios que no te siguen: ${totalUnfollowers}`
+        formatMessage({
+          params: { usersFilename },
+          template: downloadedFile
+        })
       )
-      activeConsole.log('═══════════════════════════════════════')
+      activeConsole.log(
+        formatMessage({
+          params: { totalUnfollowers },
+          template: completionUsersCount
+        })
+      )
+      activeConsole.log(BANNER_LINE)
     }
 
     const startScript = async () => {
-      activeConsole.log('🚀 Iniciando análisis de seguidores...')
+      activeConsole.log(start)
 
       while (hasNextPage) {
         let response
@@ -126,10 +170,7 @@
         try {
           response = await fetchFn(currentUrl).then((res) => res.json())
         } catch ({ message }) {
-          activeConsole.warn(
-            '⚠️ Error al obtener datos de seguidores:',
-            message
-          )
+          activeConsole.warn(warningFetchError, message)
           continue
         }
 
@@ -162,9 +203,7 @@
 
         if (scrollCycle > SCROLL_CYCLES_BEFORE_BREAK) {
           scrollCycle = 0
-          activeConsole.log(
-            '⏸️ Pausa de 10 segundos para evitar bloqueo temporal'
-          )
+          activeConsole.log(longPause)
           await wait({ milliseconds: SLEEP_TIME_TO_PREVENT_BLOCK })
         }
       }
@@ -203,6 +242,10 @@
     cookieString: document.cookie,
     downloadJsonFile: browserDownloadJsonFile,
     fetchFn: fetch,
+    localeRef:
+      (globalThis.window !== undefined &&
+        globalThis.__CHECK_FOLLOWING_LOCALE__) ||
+      DEFAULT_LOCALE,
     randomFn: Math.random,
     setTimeoutFn: setTimeout
   })
