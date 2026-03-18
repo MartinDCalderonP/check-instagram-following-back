@@ -1,10 +1,9 @@
-const {
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  writeFileSync
-} = require('node:fs')
-const { join, resolve } = require('node:path')
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const BASE_DIR = resolve(__dirname, '..')
 const LOGS_DIR = join(BASE_DIR, 'logs')
@@ -75,25 +74,39 @@ const createUsersAddedInLatest = ({ fileNames, logs }) => {
   return { latestFileName, users: usersAddedInLatest }
 }
 
-const main = () => {
-  const { fileNames, logs } = collectLogs({ logsDir: LOGS_DIR })
+const runAnalysis = ({
+  collectLogsFn = collectLogs,
+  consoleRef = console,
+  mkdirSyncFn = mkdirSync,
+  writeFileSyncFn = writeFileSync
+}) => {
+  const { fileNames, logs } = collectLogsFn({ logsDir: LOGS_DIR })
   if (!fileNames.length) {
-    mkdirSync(OUTPUT_DIR, { recursive: true })
-    writeFileSync(OUTPUT_FILE, JSON.stringify([], null, JSON_INDENT))
-    console.log(`Archivo generado: ${OUTPUT_FILE}`)
-    console.log('No se encontraron logs para analizar')
-    return
+    consoleRef.log(
+      'No se encontraron logs para analizar. No se genero archivo.'
+    )
+    return { latestFileName: null, users: [], wroteFile: false }
   }
-
   const { latestFileName, users } = createUsersAddedInLatest({
     fileNames,
     logs
   })
-  mkdirSync(OUTPUT_DIR, { recursive: true })
-  writeFileSync(OUTPUT_FILE, JSON.stringify(users, null, JSON_INDENT))
-
-  console.log(`Archivo generado: ${OUTPUT_FILE}`)
-  console.log(`Usuarios agregados en ${latestFileName}: ${users.length}`)
+  mkdirSyncFn(OUTPUT_DIR, { recursive: true })
+  writeFileSyncFn(OUTPUT_FILE, JSON.stringify(users, null, JSON_INDENT))
+  consoleRef.log(`Archivo generado: ${OUTPUT_FILE}`)
+  consoleRef.log(`Usuarios agregados en ${latestFileName}: ${users.length}`)
+  return { latestFileName, users, wroteFile: true }
 }
 
-main()
+const main = () => runAnalysis({})
+
+const isDirectRun = process.argv[1] && resolve(process.argv[1]) === __filename
+
+if (isDirectRun) main()
+export {
+  createEntriesMapByKey,
+  createEntryKey,
+  createPreviousEntriesSet,
+  createUsersAddedInLatest,
+  runAnalysis
+}
