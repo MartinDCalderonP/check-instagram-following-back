@@ -4,6 +4,7 @@ const { describe, test } = require('node:test')
 const {
   buildGraphQLUrl,
   collectUnfollowers,
+  createUsersFilename,
   createInstagramFollowingChecker,
   getCookie
 } = require('./check-instagram-following-back')
@@ -124,12 +125,21 @@ describe('check-instagram-following-back', () => {
     })
   })
 
+  test('createUsersFilename formats date as YYYY-MM-DD.json', () => {
+    const date = new Date('2026-03-18T00:00:00')
+    const result = createUsersFilename({ date })
+
+    assert.equal(result, '2026-03-18.json')
+  })
+
   test('startScript processes pagination and downloads final JSON', async () => {
     const responses = createResponses()
     let downloaded
+    const fixedDate = new Date('2026-03-18T00:00:00')
     const checker = createInstagramFollowingChecker({
       consoleRef: { clear: () => {}, log: () => {}, warn: () => {} },
       cookieString: `${COOKIE_NAME}=${USER_ID}`,
+      dateRef: fixedDate,
       downloadJsonFile: ({ data, filename }) => {
         downloaded = { data, filename }
       },
@@ -140,7 +150,7 @@ describe('check-instagram-following-back', () => {
 
     const result = await checker.startScript()
 
-    assert.equal(downloaded.filename, 'usersNotFollowingBack.json')
+    assert.equal(downloaded.filename, '2026-03-18.json')
     assert.deepEqual(
       downloaded.data.map(({ username }) => username),
       ['u1', 'u3']

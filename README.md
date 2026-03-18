@@ -29,7 +29,7 @@ This script analyzes your Instagram following list and generates a JSON file wit
 
 5. **Press Enter** and wait for the script to finish
 
-6. **Automatic download:** When finished, a file `usersNotFollowingBack.json` will be downloaded with the list of users
+6. **Automatic download:** When finished, a file with format `YYYY-MM-DD.json` (for example `2026-03-18.json`) will be downloaded with the list of users
 
 ## 📊 Output
 

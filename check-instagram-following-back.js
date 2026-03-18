@@ -6,7 +6,15 @@
   const QUERY_HASH = '3dec7e2c57367ef3da3d987d89f9dbc8'
   const SCROLL_CYCLES_BEFORE_BREAK = 6
   const SLEEP_TIME_TO_PREVENT_BLOCK = 10000
-  const USERS_FILENAME = 'usersNotFollowingBack.json'
+  const DATE_PART_LENGTH = 2
+
+  const createUsersFilename = ({ date }) => {
+    const day = `${date.getDate()}`.padStart(DATE_PART_LENGTH, '0')
+    const month = `${date.getMonth() + 1}`.padStart(DATE_PART_LENGTH, '0')
+    const year = `${date.getFullYear()}`
+
+    return `${year}-${month}-${day}.json`
+  }
 
   const getCookie = ({ cookieName, cookieString }) => {
     const cookies = `; ${cookieString}`
@@ -59,6 +67,7 @@
   const createInstagramFollowingChecker = ({
     consoleRef,
     cookieString,
+    dateRef,
     downloadJsonFile,
     fetchFn,
     randomFn,
@@ -66,12 +75,14 @@
   }) => {
     const activeConsole = consoleRef ?? console
     const activeCookieString = cookieString ?? ''
+    const activeDateRef = dateRef ?? new Date()
     const activeRandomFn = randomFn ?? Math.random
     const activeSetTimeoutFn = setTimeoutFn ?? setTimeout
     const userId = getCookie({
       cookieName: 'ds_user_id',
       cookieString: activeCookieString
     })
+    const usersFilename = createUsersFilename({ date: activeDateRef })
 
     let currentUrl = buildGraphQLUrl({ after: null, userId })
     let hasNextPage = true
@@ -99,7 +110,7 @@
       activeConsole.log('═══════════════════════════════════════')
       activeConsole.log('✅ ¡TODO LISTO!')
       activeConsole.log('═══════════════════════════════════════')
-      activeConsole.log(`   📁 Archivo descargado: ${USERS_FILENAME}`)
+      activeConsole.log(`   📁 Archivo descargado: ${usersFilename}`)
       activeConsole.log(
         `   👥 Total de usuarios que no te siguen: ${totalUnfollowers}`
       )
@@ -158,7 +169,7 @@
         }
       }
 
-      downloadJsonFile({ data: unfollowersList, filename: USERS_FILENAME })
+      downloadJsonFile({ data: unfollowersList, filename: usersFilename })
       logCompletion({ totalUnfollowers: unfollowersList.length })
 
       return { totalFollowedPeople, unfollowersList }
@@ -180,6 +191,7 @@
     module.exports = {
       buildGraphQLUrl,
       collectUnfollowers,
+      createUsersFilename,
       createInstagramFollowingChecker,
       getCookie
     }
