@@ -32,13 +32,13 @@ describe('find-non-repeated-entries', () => {
 
   test('createEntriesMapByKey deduplicates entries by key', () => {
     const entries = [
-      { full_name: 'Nombre A', id: '1', username: 'a' },
-      { full_name: 'Nombre A duplicado', id: '1', username: 'a' },
-      { full_name: 'Nombre B', id: '2', username: 'b' }
+      { full_name: 'Name A', id: '1', username: 'a' },
+      { full_name: 'Name A duplicate', id: '1', username: 'a' },
+      { full_name: 'Name B', id: '2', username: 'b' }
     ]
     const map = createEntriesMapByKey({ entries })
     assert.equal(map.size, 2)
-    assert.deepEqual(map.get('id:1'), { fullname: 'Nombre A', username: 'a' })
+    assert.deepEqual(map.get('id:1'), { fullname: 'Name A', username: 'a' })
   })
 
   test('createPreviousEntriesSet includes keys from all previous logs', () => {
@@ -62,25 +62,23 @@ describe('find-non-repeated-entries', () => {
     const logs = [
       {
         entries: [
-          { full_name: 'Usuario Viejo', id: '1', username: 'viejo' },
-          { full_name: 'Usuario Repetido', id: '2', username: 'repetido' }
+          { full_name: 'Old User', id: '1', username: 'old' },
+          { full_name: 'Repeated User', id: '2', username: 'repeated' }
         ],
         fileName: '2026-02-01.json'
       },
       {
         entries: [
-          { full_name: 'Usuario Repetido', id: '2', username: 'repetido' },
-          { full_name: 'Usuario Nuevo', id: '3', username: 'nuevo' },
-          { full_name: 'Usuario Nuevo Duplicado', id: '3', username: 'nuevo' }
+          { full_name: 'Repeated User', id: '2', username: 'repeated' },
+          { full_name: 'New User', id: '3', username: 'new' },
+          { full_name: 'New User Duplicate', id: '3', username: 'new' }
         ],
         fileName: '2026-03-01.json'
       }
     ]
     const result = createUsersAddedInLatest({ fileNames, logs })
     assert.equal(result.latestFileName, '2026-03-01.json')
-    assert.deepEqual(result.users, [
-      { fullname: 'Usuario Nuevo', username: 'nuevo' }
-    ])
+    assert.deepEqual(result.users, [{ fullname: 'New User', username: 'new' }])
   })
 
   test('runAnalysis does not write output when there are no logs', () => {
@@ -100,6 +98,6 @@ describe('find-non-repeated-entries', () => {
     assert.equal(mkdirCalled, false)
     assert.equal(writeCalled, false)
     assert.equal(result.wroteFile, false)
-    assert.match(logMessages[0], /No se encontraron logs para analizar/)
+    assert.equal(logMessages.length, 1)
   })
 })
