@@ -59,8 +59,8 @@
       .filter(({ node }) => !node.follows_viewer)
       .map(({ node }) => ({
         id: node.id,
-        username: node.username,
-        full_name: node.full_name
+        full_name: node.full_name,
+        username: node.username
       }))
   }
 

@@ -36,7 +36,7 @@ const unfollowerCases = [
         node: { follows_viewer: false, full_name: 'B', id: '2', username: 'b' }
       }
     ],
-    expected: [{ id: '2', username: 'b', full_name: 'B' }],
+    expected: [{ id: '2', full_name: 'B', username: 'b' }],
     title: 'collectUnfollowers filters users that do not follow back'
   },
   {
