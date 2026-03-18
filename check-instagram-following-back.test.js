@@ -1,13 +1,7 @@
-const assert = require('node:assert/strict')
-const { describe, test } = require('node:test')
+import { equal, deepEqual } from 'node:assert/strict'
+import { describe, test } from 'node:test'
 
-const {
-  buildGraphQLUrl,
-  collectUnfollowers,
-  createUsersFilename,
-  createInstagramFollowingChecker,
-  getCookie
-} = require('./check-instagram-following-back')
+import { buildGraphQLUrl, collectUnfollowers, createUsersFilename, createInstagramFollowingChecker, getCookie } from './check-instagram-following-back'
 
 const QUERY_HASH = '3dec7e2c57367ef3da3d987d89f9dbc8'
 const USER_ID = '999'
@@ -103,7 +97,7 @@ describe('check-instagram-following-back', () => {
   cookieCases.forEach(({ cookieString, expected, title }) => {
     test(title, () => {
       const result = getCookie({ cookieName: COOKIE_NAME, cookieString })
-      assert.equal(result, expected)
+      equal(result, expected)
     })
   })
 
@@ -112,16 +106,16 @@ describe('check-instagram-following-back', () => {
     const parsedUrl = new URL(url)
     const variables = JSON.parse(parsedUrl.searchParams.get('variables'))
 
-    assert.equal(parsedUrl.searchParams.get('query_hash'), QUERY_HASH)
-    assert.equal(variables.after, 'cursor-1')
-    assert.equal(variables.first, '24')
-    assert.equal(variables.id, USER_ID)
+    equal(parsedUrl.searchParams.get('query_hash'), QUERY_HASH)
+    equal(variables.after, 'cursor-1')
+    equal(variables.first, '24')
+    equal(variables.id, USER_ID)
   })
 
   unfollowerCases.forEach(({ edges, expected, title }) => {
     test(title, () => {
       const result = collectUnfollowers({ edges })
-      assert.deepEqual(result, expected)
+      deepEqual(result, expected)
     })
   })
 
@@ -129,7 +123,7 @@ describe('check-instagram-following-back', () => {
     const date = new Date('2026-03-18T00:00:00')
     const result = createUsersFilename({ date })
 
-    assert.equal(result, '2026-03-18.json')
+    equal(result, '2026-03-18.json')
   })
 
   test('startScript processes pagination and downloads final JSON', async () => {
@@ -150,11 +144,11 @@ describe('check-instagram-following-back', () => {
 
     const result = await checker.startScript()
 
-    assert.equal(downloaded.filename, '2026-03-18.json')
-    assert.deepEqual(
+    equal(downloaded.filename, '2026-03-18.json')
+    deepEqual(
       downloaded.data.map(({ username }) => username),
       ['u1', 'u3']
     )
-    assert.equal(result.totalFollowedPeople, 3)
+    equal(result.totalFollowedPeople, 3)
   })
 })
