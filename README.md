@@ -13,6 +13,8 @@ This script analyzes your Instagram following list and generates a JSON file wit
 - ✅ Automatic download of results in JSON format
 - ✅ Random delays to avoid temporary blocks
 - ✅ Automatic pauses every certain number of requests
+- ✅ Multi-language support (English, Spanish)
+- ✅ Log analysis tool to track changes over time
 
 ## 🚀 How to Use
 
@@ -45,7 +47,22 @@ The script generates a JSON file with the following information for each user wh
 ]
 ```
 
-## ⚠️ Warnings
+## 📈 Log Analysis
+
+Use the log analysis tool to track users over time and find who was added recently:
+
+```bash
+node log-analysis/find-non-repeated-entries.js
+```
+
+This will analyze all log files in the `logs/` directory and create a report of changes.
+
+## 🌐 Language Support
+
+The script supports multiple languages:
+
+- **English** (en)
+- **Spanish** (es)
 
 - **Responsible use:** This script makes multiple requests to Instagram's API. Use it moderately.
 - **Possible temporary block:** Instagram may temporarily limit your account if it detects many requests. The script includes delays to minimize this risk.
