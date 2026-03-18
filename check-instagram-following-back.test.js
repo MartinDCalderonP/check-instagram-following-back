@@ -1,7 +1,13 @@
 import { equal, deepEqual } from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
-import { buildGraphQLUrl, collectUnfollowers, createUsersFilename, createInstagramFollowingChecker, getCookie } from './check-instagram-following-back'
+import {
+  buildGraphQLUrl,
+  collectUnfollowers,
+  createUsersFilename,
+  createInstagramFollowingChecker,
+  getCookie
+} from './check-instagram-following-back.js'
 
 const QUERY_HASH = '3dec7e2c57367ef3da3d987d89f9dbc8'
 const USER_ID = '999'
